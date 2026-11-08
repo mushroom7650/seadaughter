@@ -1,0 +1,139 @@
+{
+ "canvas": [
+  768,
+  1024
+ ],
+ "anchors": {
+  "clip": [
+   442,
+   72,
+   46
+  ],
+  "crown": [
+   381,
+   66,
+   168
+  ],
+  "neck": [
+   384,
+   276,
+   100
+  ]
+ },
+ "outfits": {
+  "chiton": {
+   "file": "dress_chiton.webp"
+  },
+  "festival": {
+   "file": "dress_festival.webp"
+  },
+  "travel": {
+   "file": "dress_travel.webp"
+  },
+  "priestess": {
+   "file": "dress_priestess.webp"
+  },
+  "huntress": {
+   "file": "dress_huntress.webp"
+  },
+  "winter": {
+   "file": "dress_winter.webp"
+  },
+  "athens": {
+   "file": "dress_athens.webp"
+  },
+  "florence": {
+   "file": "dress_florence.webp"
+  },
+  "vienna": {
+   "file": "dress_vienna.webp"
+  },
+  "paris": {
+   "file": "dress_paris.webp"
+  }
+ },
+ "hair": {
+  "shell": {
+   "file": "acc_shell.webp",
+   "anchor": "clip",
+   "w": 46,
+   "dx": 0,
+   "dy": 0
+  },
+  "ribbon": {
+   "file": "acc_ribbon.webp",
+   "anchor": "clip",
+   "w": 62,
+   "dx": 4,
+   "dy": -4
+  },
+  "pearl": {
+   "file": "acc_pearl.webp",
+   "anchor": "clip",
+   "w": 26,
+   "dx": 2,
+   "dy": 4
+  },
+  "starfish": {
+   "file": "acc_starfish.webp",
+   "anchor": "clip",
+   "w": 50,
+   "dx": 0,
+   "dy": 0
+  },
+  "olive": {
+   "file": "acc_olive.webp",
+   "anchor": "clip",
+   "w": 60,
+   "dx": 0,
+   "dy": 0
+  },
+  "laurel": {
+   "file": "acc_laurel.webp",
+   "anchor": "crown",
+   "w": 182,
+   "dx": 0,
+   "dy": 0
+  },
+  "flowers": {
+   "file": "acc_flowers.webp",
+   "anchor": "crown",
+   "w": 182,
+   "dx": 0,
+   "dy": 2
+  },
+  "diadem": {
+   "file": "acc_diadem.webp",
+   "anchor": "crown",
+   "w": 168,
+   "dx": 0,
+   "dy": 6
+  }
+ },
+ "neck": {
+  "shell": {
+   "file": "neck_shell.webp",
+   "w": 100,
+   "dx": 0,
+   "dy": 0
+  },
+  "pearls": {
+   "file": "neck_pearls.webp",
+   "w": 100,
+   "dx": 0,
+   "dy": -2
+  },
+  "owl": {
+   "file": "neck_owl.webp",
+   "w": 92,
+   "dx": 0,
+   "dy": 4
+  },
+  "coral": {
+   "file": "neck_coral.webp",
+   "w": 100,
+   "dx": 0,
+   "dy": 0
+  }
+ }
+}

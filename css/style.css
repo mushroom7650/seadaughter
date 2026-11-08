@@ -1,0 +1,312 @@
+:root {
+  --sea: #1f5f7a; --sea-deep: #143f55; --wine: #4a1f4f;
+  --sand: #f6efe2; --paper: #fffaf0; --ink: #2b2420; --muted: #7a6e62;
+  --gold: #c99a3b; --meander: #2c6aa0; --good: #2f8a4f; --bad: #b0413e;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+:root { color-scheme: light; }  /* 游戏固定使用这一套浅色画面 */
+body {
+  background: linear-gradient(180deg, #e9f2f4 0%, var(--sand) 60%);
+  color: var(--ink);
+  font-family: 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif;
+  font-size: 16px; line-height: 1.6;
+}
+body.storm { background: linear-gradient(180deg, #2a1830 0%, var(--wine) 70%); color: #f3e9f5; }
+button {
+  font: inherit; cursor: pointer; border: 1px solid var(--gold); background: var(--paper);
+  color: var(--ink); padding: 8px 16px; border-radius: 999px; transition: transform .1s, background .2s;
+}
+button:hover { background: #fff3d6; }
+button:active { transform: scale(.97); }
+button.primary { background: var(--sea); color: #fff; border-color: var(--sea-deep); }
+button.primary:hover { background: var(--sea-deep); }
+button:disabled { opacity: .5; cursor: default; }
+#topbar { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 8px; z-index: 10; }
+#topbar button { padding: 4px 12px; font-size: 14px; }
+#app { max-width: 980px; margin: 0 auto; padding-block: 56px 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.card { background: var(--paper); border-radius: var(--radius); padding: 20px; box-shadow: 0 4px 20px rgba(20,63,85,.1); border-top: 4px solid var(--meander); color: var(--ink); }
+.title-screen { text-align: center; padding-top: 10vh; }
+.title-screen h1 { font-size: clamp(32px, 7vw, 56px); margin: 0; color: var(--sea-deep); letter-spacing: .08em; }
+.title-screen h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; color: var(--muted); margin: 4px 0 32px; }
+.stack { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.stack button { min-width: 200px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.home { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+@media (max-width: 720px) { .home { grid-template-columns: 1fr; } }
+.portrait {
+  aspect-ratio: 3/4; border-radius: var(--radius); background: linear-gradient(160deg, #cfe3ea, #f3e4c8);
+  display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 14px; overflow: hidden;
+}
+/* 旧规则会把面板里所有图片拉伸铺满，导致家具和饰品变成竖条，已删除 */
+.date { font-size: 20px; font-weight: 700; color: var(--sea-deep); }
+.date small { font-family: 'Cormorant Garamond', serif; color: var(--muted); font-weight: 500; margin-left: 8px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 14px; margin-top: 12px; }
+.stat { display: flex; justify-content: space-between; border-bottom: 1px dotted #d8ccb8; }
+.stat.stress b { color: var(--bad); }
+.plan { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+.plan label { display: flex; flex-direction: column; font-size: 14px; color: var(--muted); }
+.plan select { font: inherit; font-size: 16px; padding: 6px; border-radius: 8px; border: 1px solid #d8ccb8; background: #fff; color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; width: 100%; }
+.plan .fx { font-size: 12px; margin-top: 3px; min-height: 1.2em; }
+.plan .fx i { font-style: normal; margin-right: 4px; }
+.daylog { list-style: none; padding: 0; margin: 12px 0; }
+.daylog li { padding: 6px 0; border-bottom: 1px dotted #d8ccb8; }
+.up { color: var(--good); } .down { color: var(--bad); }
+.dialogue { position: relative; min-height: 180px; }
+.speaker { font-weight: 700; color: var(--sea); margin-bottom: 4px; }
+.line { font-size: 18px; white-space: pre-wrap; }
+.choices { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.choices button { text-align: left; border-radius: var(--radius); }
+.ending h2 { color: var(--sea-deep); }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: 6px 8px; border-bottom: 1px solid #eadfcc; text-align: left; }
+#toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 8px 16px; border-radius: 999px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#toast.show { opacity: .9; }
+input[type=text] { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid #d8ccb8; width: min(320px, 100%); }
+.pets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; width: 100%; }
+.pets button.selected { background: var(--sea); color: #fff; }
+.muted { color: var(--muted); font-size: 14px; }
+
+/* ---------- 场景与立绘 ---------- */
+.scene {
+  position: relative; width: 100%; aspect-ratio: 4/3; border-radius: var(--radius); overflow: hidden;
+  background: #cfe3ea center / cover no-repeat; box-shadow: 0 4px 20px rgba(20,63,85,.15);
+}
+.scene .ione {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  height: 94%; width: auto; max-width: 90%; object-fit: contain; object-position: bottom;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); animation: ione-in .35s ease-out;
+}
+.scene .ione.f-sad { height: 66%; }      /* 蹲坐的姿势，按站立身高缩小 */
+.scene .ione.f-angry { height: 88%; }    /* 前倾的姿势 */
+@keyframes ione-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%); } }
+/* 视觉小说式布局：始终一屏放下，按钮不会被挤出屏幕 */
+:root { --screen-h: calc(100vh - 72px); }
+@supports (height: 100dvh) { :root { --screen-h: calc(100dvh - 72px); } }
+.vn { display: grid; grid-template-rows: minmax(150px, 1fr) auto; gap: 10px; height: var(--screen-h); min-height: 420px; }
+.vn .scene { aspect-ratio: auto; height: 100%; min-height: 0; max-width: 100%; }
+.vn .dialogue { min-height: 0; max-height: 58vh; overflow: auto; padding: 14px 16px; }
+.vn .dialogue .choices { margin-top: 10px; gap: 8px; }
+.vn .dialogue .choices button { padding: 7px 14px; }
+@media (min-width: 760px) and (min-aspect-ratio: 1/1) {
+  .vn { display: block; position: relative; }
+  .vn .dialogue {
+    position: absolute; left: 20px; right: 20px; bottom: 16px; max-height: 52%;
+    background: rgba(255,250,240,.94); backdrop-filter: blur(3px); box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  }
+  .vn .scene .ione { height: 96%; }
+}
+.portrait { aspect-ratio: auto; display: block; background: none; }
+.portrait .scene { aspect-ratio: 3/4; }
+.portrait .scene .ione { height: 92%; max-width: 100%; }
+.portrait .scene .ione.f-sad { height: 64%; }
+.title-screen { padding-top: 0; display: grid; grid-template-rows: minmax(200px, 1fr) auto; gap: 16px; height: var(--screen-h); min-height: 420px; }
+.title-screen .scene { aspect-ratio: auto; height: 100%; width: 100%; max-width: 1000px; margin: 0 auto; }
+.title-screen .stack { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.title-screen .stack button { min-width: 0; width: 180px; text-align: center; }
+@media (max-width: 600px) { .title-screen .stack { flex-direction: column; align-items: stretch; } .title-screen .stack button { width: 100%; } }
+.title-screen .scene .ione { left: 72%; height: 90%; }
+.title-text {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 58%; display: flex; flex-direction: column; justify-content: center;
+  padding: 16px; text-shadow: 0 2px 12px rgba(255,255,255,.9), 0 0 4px rgba(255,255,255,.9);
+}
+.title-screen .title-text h1 { font-size: clamp(24px, 5.5vw, 48px); }
+.title-screen .title-text h2 { margin: 4px 0 0; color: var(--sea-deep); font-size: clamp(14px, 2.6vw, 22px); }
+body.storm .card { background: rgba(255,250,240,.96); }
+@media (max-width: 600px) {
+  .title-text { width: 100%; justify-content: flex-start; align-items: center; text-align: center; padding-top: 14px; }
+  .title-screen .scene .ione { left: 50%; height: 70%; }
+}
+
+/* ---------- 其他人物、插图、你的样子 ---------- */
+.scene .npc { position: absolute; bottom: 0; left: 4%; height: 88%; width: auto; max-width: 42%; object-fit: contain; object-position: bottom;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); animation: npc-in .3s ease-out; }
+.scene.has-npc .ione, .scene.has-npc .ione-dressed { left: 68%; }
+@keyframes npc-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; } }
+.scene.is-cg { background-position: center; }
+.scene.is-cg .npc { display: none; }
+.dressed { position: relative; height: 100%; width: auto; }
+.dressed img { position: absolute; }
+.dressed img.base { position: relative; height: 100%; width: auto; display: block; }
+.scene .ione-dressed { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 96%; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+.scene .furn { position: absolute; transform: translateY(-100%); filter: drop-shadow(0 4px 6px rgba(0,0,0,.2)); }
+.scene .furn.slot-rug { transform: translateY(-60%); filter: none; }
+.scene .furn.slot-wall { transform: translateY(-50%); filter: none; }
+.pet-corner { position: absolute; right: 8px; bottom: 8px; width: 26%; max-width: 120px; aspect-ratio: 1; padding: 0; border-radius: 50%; overflow: hidden; border: 3px solid var(--paper); box-shadow: 0 4px 14px rgba(0,0,0,.25); background: var(--paper); z-index: 2; }
+.pet-corner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mentors { display: flex; gap: 12px; justify-content: center; }
+.mentors button { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: var(--radius); padding: 8px 14px; }
+.mentors img { height: 120px; width: auto; }
+.mentors button.selected, .pets button.selected { background: var(--sea); color: #fff; }
+.pets button { display: flex; align-items: center; gap: 8px; border-radius: var(--radius); }
+.pets img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.setup { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+/* ---------- 周报插图、小知识 ---------- */
+.act-cg { aspect-ratio: 16/7; border-radius: 10px; background: #e8eef0 center/cover no-repeat; margin-bottom: 10px; max-width: 100%; }
+.note-card { max-width: 640px; margin: 0 auto; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--gold); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.note { background: #f4ecd9; border-left: 3px solid var(--gold); padding: 8px 12px; border-radius: 6px; font-size: 15px; }
+.dream-title { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.7); background: rgba(20,10,40,.25); padding: 16px; }
+.dream-title h2 { margin: 4px 0; font-size: clamp(22px, 4vw, 36px); }
+.dream-title .eyebrow { color: #f3e2b0; }
+body.dream { background: linear-gradient(180deg, #23214a 0%, #3b2f5e 70%); }
+
+/* ---------- 周末菜单、商店、换装、房间 ---------- */
+.row.between { justify-content: space-between; }
+.ap { font-size: 14px; color: var(--sea-deep); letter-spacing: .05em; }
+.grid-buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.grid-buttons button { border-radius: 10px; }
+.grid-buttons small { color: var(--muted); }
+.place-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.place { aspect-ratio: 4/3; border-radius: 10px; background: #ddd center/cover no-repeat; display: flex; align-items: flex-end; padding: 0; overflow: hidden; }
+.place span { width: 100%; background: rgba(255,250,240,.9); padding: 4px 8px; font-size: 14px; }
+.item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.item-grid button { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 10px; padding: 8px; }
+.item-grid img { width: 64px; height: 64px; object-fit: contain; }
+.item-grid b { color: var(--gold); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tabs button.selected { background: var(--sea); color: #fff; }
+.dress-screen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 14px; align-items: start; }
+.dress-stage .scene { aspect-ratio: 3/4; }
+.dress-stage.wide .scene { aspect-ratio: 4/3; }
+@media (max-width: 720px) { .dress-screen { grid-template-columns: 1fr; } .dress-stage .scene { aspect-ratio: 4/3; } }
+.wr { margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chips button { font-size: 14px; padding: 4px 10px; display: flex; align-items: center; gap: 4px; }
+.chips button img { width: 22px; height: 22px; object-fit: contain; }
+.chips button.selected { background: var(--sea); color: #fff; }
+.slot-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0; }
+.slot-row select { font: inherit; font-size: 15px; padding: 4px; border-radius: 8px; border: 1px solid #d8ccb8; max-width: 70%; color: var(--ink); background: #fff; }
+.pet-play { display: flex; gap: 14px; align-items: center; }
+.pet-big { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; flex: none; }
+.word-card { text-align: center; max-width: 520px; margin: 0 auto; }
+.word { display: flex; flex-direction: column; align-items: center; margin: 10px 0; }
+.word b { font-size: 44px; color: var(--sea-deep); }
+.word span { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+
+/* ---------- 小游戏 ---------- */
+.minigame { max-width: 560px; margin: 0 auto; }
+.mg-canvas { width: 100%; height: auto; border-radius: 10px; display: block; margin: 8px 0; touch-action: manipulation; }
+.mg-bar { position: relative; height: 34px; background: #eadfcc; border-radius: 17px; margin: 14px 0; overflow: hidden; }
+.mg-zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #e7c66a, #c99a3b); }
+.mg-ptr { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; background: var(--ink); border-radius: 2px; }
+.mg-step { font-weight: 700; color: var(--sea-deep); }
+.mg-loom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 320px; margin: 10px auto; }
+.mg-tile { aspect-ratio: 1; border-radius: 12px; border: 3px solid var(--c); background:
+  repeating-linear-gradient(90deg, transparent 0 10px, rgba(255,255,255,.35) 10px 14px), var(--c); opacity: .55; transition: opacity .1s, transform .1s; }
+.mg-tile.lit { opacity: 1; transform: scale(1.05); box-shadow: 0 0 18px var(--c); }
+.mg-pairs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.mg-card { min-height: 84px; border-radius: 10px; background: var(--sea); color: transparent; font-size: 14px; }
+.mg-card span { visibility: hidden; }
+.mg-card.up { background: var(--paper); color: var(--ink); }
+.mg-card.up span { visibility: visible; }
+.mg-card.done { background: #dff0e3; border-color: var(--good); }
+.choices button.right { background: #dff0e3; border-color: var(--good); }
+.choices button.wrong { background: #f6dede; border-color: var(--bad); }
+.mg-score { font-size: 14px; color: var(--muted); }
+
+/* ---------- 宠物站在房间里、爱心、亲密度 ---------- */
+.pet-sprite { position: absolute; bottom: 2%; right: 4%; height: 32%; padding: 0; border: 0; background: none; z-index: 2; cursor: pointer; animation: pet-idle 2.6s ease-in-out infinite; transform-origin: bottom center; }
+.pet-sprite:hover { background: none; }
+.pet-sprite img { height: 100%; width: auto; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.pet-sprite.pet-owl { height: 15%; animation: owl-idle 4s ease-in-out infinite; } /* 位置由 placePets() 按窗台计算 */
+@keyframes owl-idle { 0%, 100% { rotate: 0deg; } 40% { rotate: -6deg; } 60% { rotate: 4deg; } }
+.pet-sprite.pet-tortoise { height: 16%; }
+.pet-sprite.fallback img { border-radius: 50%; height: 100%; }
+@keyframes pet-idle { 0%, 100% { transform: translateY(0) rotate(0) scale(1, 1); } 20% { transform: translateY(0) rotate(-3deg) scale(1.05, .95); }
+  45% { transform: translateY(-8%) rotate(2deg) scale(.96, 1.05); } 70% { transform: translateY(0) rotate(3deg) scale(1.04, .96); } }
+.pet-sprite.jump { animation: pet-jump .7s ease-out; }
+@keyframes pet-jump { 0% { transform: scale(1.1, .85); } 35% { transform: translateY(-45%) rotate(-10deg) scale(.9, 1.15); } 70% { transform: translateY(0) rotate(6deg) scale(1.12, .88); } 100% { transform: none; } }
+.pet-big.sprite { border-radius: 0; object-fit: contain; animation: pet-idle 2s ease-in-out infinite; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+@media (prefers-reduced-motion: reduce) { .pet-sprite { animation: none; } }
+.heart { position: absolute; color: #e2557a; font-size: 22px; pointer-events: none; animation: heart-up 1.4s ease-out forwards; z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+@keyframes heart-up { from { opacity: 1; transform: translateY(0) scale(.8); } to { opacity: 0; transform: translateY(-70px) scale(1.3); } }
+.love { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 4px 0; }
+.love .track { flex: 1; height: 8px; border-radius: 4px; background: #f3e1e6; overflow: hidden; }
+.love i { height: 100%; background: linear-gradient(90deg, #f2a7bb, #e2557a); display: block; }
+.love b { color: #e2557a; }
+
+/* ---------- 小游戏成绩单、解锁 ---------- */
+.result-card { text-align: center; }
+.big-score { font-size: 56px; font-weight: 700; color: var(--sea-deep); line-height: 1.1; }
+.big-score small { font-size: 18px; color: var(--muted); }
+.unlock { display: flex; align-items: center; gap: 12px; background: #fff3d6; border: 1px solid var(--gold); border-radius: 12px; padding: 10px 14px; margin: 10px 0; text-align: left; }
+.unlock img { width: 64px; height: 64px; object-fit: contain; }
+.unlock p { margin: 2px 0 0; }
+.place span small { color: var(--muted); }
+
+/* ---------- 房间风格 ---------- */
+.room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.room-card { display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 12px; text-align: left; }
+.room-card .thumb { aspect-ratio: 4/3; border-radius: 8px; background: #ddd center/cover no-repeat; display: block; }
+.room-card small { color: var(--muted); font-size: 12px; }
+.room-card.selected { background: var(--sea); color: #fff; }
+.room-card.selected small { color: #dce9ef; }
+.item-grid img.wide { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border-radius: 8px; }
+
+/* ---------- 怪物对峙 ---------- */
+.duel-stage { position: relative; height: 230px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #3b3150 0%, #1d1a29 75%); border-radius: 12px; overflow: hidden; }
+.duel-mon { max-height: 210px; max-width: 90%; transition: transform .25s; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+.duel-mon.lunge-left { transform: translateX(-22%) scale(1.15) rotate(-6deg); }
+.duel-mon.lunge-right { transform: translateX(22%) scale(1.15) rotate(6deg); }
+.duel-mon.lunge-up { transform: translateY(-10%) scale(1.25); }
+.duel-mon.struck { animation: struck .4s; }
+@keyframes struck { 0%, 100% { filter: none; } 30% { filter: brightness(2.2) drop-shadow(0 0 12px #fff); transform: translateX(6px); } 60% { transform: translateX(-6px); } }
+.duel-tell { position: absolute; top: 10px; left: 0; right: 0; text-align: center; color: #fff; font-weight: 700; font-size: 18px; text-shadow: 0 2px 6px #000; }
+.duel-bars { display: flex; justify-content: space-between; margin: 8px 0; font-size: 15px; }
+.duel-hearts { color: #e2557a; letter-spacing: 2px; }
+.duel-mhp { color: var(--sea-deep); letter-spacing: 1px; }
+.duel-keys { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.duel-keys button { min-width: 60px; font-size: 20px; }
+.duel-keys button.primary { font-size: 16px; }
+.hidden { display: none !important; }
+
+/* ---------- 结局揭晓：全屏插图慢慢推近，名字浮现 ---------- */
+.ending-reveal { position: relative; height: var(--screen-h); min-height: 420px; border-radius: var(--radius); overflow: hidden; background: #111 center / cover no-repeat;
+  animation: reveal-in 2.4s ease-out both, ken-burns 18s ease-out both; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+@keyframes reveal-in { from { opacity: 0; filter: brightness(.3) blur(4px); } to { opacity: 1; filter: none; } }
+@keyframes ken-burns { from { background-size: 112% auto; background-position: 50% 40%; } to { background-size: 100% auto; background-position: 50% 50%; } }
+@supports not (aspect-ratio: 1) { .ending-reveal { background-size: cover; } }
+.ending-reveal .reveal-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 60px 24px 80px; text-align: center; color: #fff;
+  background: linear-gradient(transparent, rgba(10,8,20,.75)); animation: title-in 2s 1.4s ease-out both; }
+.ending-reveal h1 { margin: 4px 0 0; font-size: clamp(30px, 6vw, 56px); letter-spacing: .08em; text-shadow: 0 3px 18px rgba(0,0,0,.6); text-wrap: balance; }
+.ending-reveal .eyebrow { color: #f3e2b0; }
+.ending-reveal .reveal-next { position: absolute; right: 18px; bottom: 18px; animation: title-in 1s 2.6s ease-out both; }
+@keyframes title-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (max-aspect-ratio: 1/1) { .ending-reveal { animation: reveal-in 2.4s ease-out both; background-size: cover; } }
+@media (prefers-reduced-motion: reduce) { .ending-reveal, .ending-reveal .reveal-text, .ending-reveal .reveal-next { animation: none; } }
+
+/* ---------- 开场引导 ---------- */
+.tutorial { max-width: 680px; margin: 0 auto; }
+.tutorial h2 { margin: 4px 0 8px; color: var(--sea-deep); text-wrap: balance; }
+.tutorial p { line-height: 1.75; margin: 0 0 8px; }
+.tut-img { aspect-ratio: 16/8; max-width: 100%; border-radius: 10px; background: #ddd center/cover no-repeat; margin-bottom: 12px; }
+.tut-img.blur { filter: blur(6px) brightness(.8); }
+
+/* ---------- 结局图鉴 ---------- */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+.gal-card { display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 12px; text-align: left; background: var(--paper); border: 1px solid var(--gold); }
+.gal-card .gal-img { aspect-ratio: 4/3; max-width: 100%; border-radius: 8px; background: #222 center/cover no-repeat; }
+.gal-card small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.gal-card.locked { border-style: dashed; border-color: #cbbfa8; }
+.gal-card.locked .gal-img { filter: brightness(.15) grayscale(1) blur(3px); }
+.keepsake { display: grid; gap: 12px; }
+.ks-img { position: relative; aspect-ratio: 4/3; max-height: 62vh; max-width: 100%; border-radius: var(--radius); background: #111 center/cover no-repeat; box-shadow: 0 10px 30px rgba(0,0,0,.3); animation: reveal-in 1.2s ease-out both; }
+.ks-stamp { position: absolute; right: 16px; top: 16px; padding: 8px 12px; border: 2px solid #f3e2b0; color: #f3e2b0; border-radius: 6px; transform: rotate(6deg); font-weight: 700; letter-spacing: .1em; text-align: center; background: rgba(20,12,30,.35); text-shadow: 0 1px 3px #000; }
+.new-ending img { width: 96px; height: 72px; object-fit: cover; border-radius: 6px; }
+@media (min-width: 900px) { .keepsake { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+
+/* ---------- 小游戏说明卡、对峙提示 ---------- */
+.howto ol { list-style: none; padding: 0; margin: 10px 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.howto li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.6; }
+.howto .ico { flex: none; width: 34px; height: 34px; border-radius: 50%; background: #f4ecd9; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.duel-arrow { position: absolute; top: 50%; font-size: 64px; font-weight: 700; color: #ffd36b; text-shadow: 0 0 16px #ff8a3d, 0 2px 4px #000; opacity: 0; transform: translateY(-50%); pointer-events: none; }
+.duel-arrow.show { opacity: 1; animation: arrow-pulse .5s ease-in-out infinite alternate; }
+.duel-arrow.from-left { left: 8%; } .duel-arrow.from-right { right: 8%; } .duel-arrow.from-up { left: 50%; top: 18%; transform: translateX(-50%); }
+@keyframes arrow-pulse { from { scale: 1; } to { scale: 1.25; } }
+.duel-round { position: absolute; left: 10px; bottom: 8px; color: #f3e2b0; font-size: 13px; }
+.duel-keys button small { font-size: 12px; display: block; }
+.duel-keys button.hint, .duel-keys button.primary.hint { box-shadow: 0 0 0 3px #ffd36b, 0 0 16px #ffb03b; animation: arrow-pulse .5s ease-in-out infinite alternate; }

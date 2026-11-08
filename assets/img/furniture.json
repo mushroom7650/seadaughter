@@ -1,0 +1,195 @@
+{
+ "bed_simple": {
+  "file": "assets/img/furn_bed_simple.webp",
+  "name": {
+   "zh": "朴素木床",
+   "en": "Simple Bed"
+  },
+  "price": 0,
+  "bonus": {
+   "stress": -1
+  },
+  "unlock": "start",
+  "kind": "floor"
+ },
+ "bed_carved": {
+  "file": "assets/img/furn_bed_carved.webp",
+  "name": {
+   "zh": "雕花木床",
+   "en": "Carved Bed"
+  },
+  "price": 120,
+  "bonus": {
+   "stress": -3
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "chest": {
+  "file": "assets/img/furn_chest.webp",
+  "name": {
+   "zh": "木箱",
+   "en": "Wooden Chest"
+  },
+  "price": 30,
+  "bonus": {},
+  "unlock": "start",
+  "kind": "floor"
+ },
+ "loom": {
+  "file": "assets/img/furn_loom.webp",
+  "name": {
+   "zh": "小织布机",
+   "en": "Small Loom"
+  },
+  "price": 60,
+  "bonus": {
+   "etiquette": 1
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "stool": {
+  "file": "assets/img/furn_stool.webp",
+  "name": {
+   "zh": "草编凳",
+   "en": "Rush Stool"
+  },
+  "price": 15,
+  "bonus": {},
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "table": {
+  "file": "assets/img/furn_table.webp",
+  "name": {
+   "zh": "三足小桌",
+   "en": "Three-legged Table"
+  },
+  "price": 25,
+  "bonus": {
+   "wits": 1
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "lamp": {
+  "file": "assets/img/furn_lamp.webp",
+  "name": {
+   "zh": "青铜油灯",
+   "en": "Bronze Oil Lamp"
+  },
+  "price": 40,
+  "bonus": {
+   "wits": 1
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "amphora": {
+  "file": "assets/img/furn_amphora.webp",
+  "name": {
+   "zh": "海豚陶罐",
+   "en": "Dolphin Amphora"
+  },
+  "price": 35,
+  "bonus": {
+   "sailing": 1
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "plant": {
+  "file": "assets/img/furn_plant.webp",
+  "name": {
+   "zh": "橄榄树苗",
+   "en": "Olive Sapling"
+  },
+  "price": 20,
+  "bonus": {
+   "farming": 1,
+   "stress": -1
+  },
+  "unlock": "shop",
+  "kind": "floor"
+ },
+ "rug_meander": {
+  "file": "assets/img/furn_rug_meander.webp",
+  "name": {
+   "zh": "回纹地毯",
+   "en": "Meander Rug"
+  },
+  "price": 45,
+  "bonus": {
+   "stress": -1
+  },
+  "unlock": "shop",
+  "kind": "rug"
+ },
+ "shelf_shells": {
+  "file": "assets/img/furn_shelf_shells.webp",
+  "name": {
+   "zh": "贝壳架",
+   "en": "Shell Shelf"
+  },
+  "price": 30,
+  "bonus": {
+   "stress": -1
+  },
+  "unlock": "shop",
+  "kind": "wall"
+ },
+ "mosaic": {
+  "file": "assets/img/furn_mosaic.webp",
+  "name": {
+   "zh": "罗马马赛克地板",
+   "en": "Roman Mosaic"
+  },
+  "price": 0,
+  "bonus": {
+   "stress": -2
+  },
+  "unlock": "dream_athens",
+  "kind": "rug"
+ },
+ "tapestry": {
+  "file": "assets/img/furn_tapestry.webp",
+  "name": {
+   "zh": "文艺复兴挂毯",
+   "en": "Renaissance Tapestry"
+  },
+  "price": 0,
+  "bonus": {
+   "etiquette": 1,
+   "stress": -1
+  },
+  "unlock": "dream_florence",
+  "kind": "wall"
+ },
+ "piano": {
+  "file": "assets/img/furn_piano.webp",
+  "name": {
+   "zh": "维也纳古钢琴",
+   "en": "Viennese Fortepiano"
+  },
+  "price": 0,
+  "bonus": {
+   "song": 2
+  },
+  "unlock": "dream_vienna",
+  "kind": "floor"
+ },
+ "lab_bench": {
+  "file": "assets/img/furn_lab_bench.webp",
+  "name": {
+   "zh": "实验台",
+   "en": "Laboratory Bench"
+  },
+  "price": 0,
+  "bonus": {
+   "wits": 2
+  },
+  "unlock": "dream_paris",
+  "kind": "floor"
+ }
+}

@@ -1,0 +1,178 @@
+{
+ "honeycake": {
+  "file": "assets/img/item_honeycake.webp",
+  "name": {
+   "zh": "蜂蜜饼",
+   "en": "Honey Cakes"
+  },
+  "price": 6,
+  "kind": "food",
+  "likes": {
+   "cheerful": 3,
+   "clingy": 3,
+   "hedgehog": 2
+  }
+ },
+ "figs": {
+  "file": "assets/img/item_figs.webp",
+  "name": {
+   "zh": "无花果",
+   "en": "Figs"
+  },
+  "price": 4,
+  "kind": "food",
+  "likes": {
+   "calm": 2,
+   "gentle": 2,
+   "hedgehog": 2
+  }
+ },
+ "flower": {
+  "file": "assets/img/item_flower.webp",
+  "name": {
+   "zh": "野花束",
+   "en": "Wildflowers"
+  },
+  "price": 3,
+  "kind": "gift",
+  "likes": {
+   "gentle": 4,
+   "clingy": 2,
+   "stubborn": -1
+  }
+ },
+ "ribbon": {
+  "file": "assets/img/item_ribbon.webp",
+  "name": {
+   "zh": "海蓝丝带",
+   "en": "Sea-blue Ribbon"
+  },
+  "price": 12,
+  "kind": "gift",
+  "likes": {
+   "cheerful": 3,
+   "clingy": 3,
+   "cold": 1
+  }
+ },
+ "mirror": {
+  "file": "assets/img/item_mirror.webp",
+  "name": {
+   "zh": "青铜手镜",
+   "en": "Bronze Mirror"
+  },
+  "price": 30,
+  "kind": "gift",
+  "likes": {
+   "cheerful": 2,
+   "gentle": 2,
+   "rebel": -1
+  }
+ },
+ "knucklebones": {
+  "file": "assets/img/item_knucklebones.webp",
+  "name": {
+   "zh": "羊拐骨",
+   "en": "Knucklebones"
+  },
+  "price": 8,
+  "kind": "gift",
+  "likes": {
+   "cheerful": 4,
+   "rebel": 3,
+   "stubborn": 2
+  }
+ },
+ "scroll": {
+  "file": "assets/img/item_scroll.webp",
+  "name": {
+   "zh": "莎草纸卷",
+   "en": "Papyrus Scroll"
+  },
+  "price": 15,
+  "kind": "gift",
+  "likes": {
+   "independent": 3,
+   "calm": 3,
+   "cold": 2
+  }
+ },
+ "seashell_box": {
+  "file": "assets/img/item_seashell_box.webp",
+  "name": {
+   "zh": "贝壳小盒",
+   "en": "Shell Box"
+  },
+  "price": 20,
+  "kind": "gift",
+  "likes": {
+   "hedgehog": 4,
+   "gentle": 3,
+   "clingy": 3
+  }
+ },
+ "lyre_small": {
+  "file": "assets/img/item_lyre_small.webp",
+  "name": {
+   "zh": "小竖琴",
+   "en": "Little Lyre"
+  },
+  "price": 40,
+  "kind": "gift",
+  "likes": {
+   "cheerful": 3,
+   "gentle": 3,
+   "devout": 2
+  }
+ },
+ "pomegranate": {
+  "file": "assets/img/item_pomegranate.webp",
+  "name": {
+   "zh": "石榴",
+   "en": "Pomegranate"
+  },
+  "price": 5,
+  "kind": "food",
+  "likes": {
+   "devout": 2,
+   "calm": 2
+  }
+ },
+ "olive_oil": {
+  "file": "assets/img/item_olive_oil.webp",
+  "name": {
+   "zh": "橄榄油瓶",
+   "en": "Olive Oil Flask"
+  },
+  "price": 10,
+  "kind": "gift",
+  "likes": {
+   "calm": 2,
+   "independent": 1
+  }
+ },
+ "amulet": {
+  "file": "assets/img/item_amulet.webp",
+  "name": {
+   "zh": "猫头鹰护身符",
+   "en": "Owl Amulet"
+  },
+  "price": 25,
+  "kind": "charm",
+  "likes": {
+   "devout": 5,
+   "rebel": -3,
+   "hedgehog": 2
+  }
+ },
+ "medicine": {
+  "file": "assets/img/item_medicine.webp",
+  "name": {
+   "zh": "草药包",
+   "en": "Herb Pouch"
+  },
+  "price": 12,
+  "kind": "medicine",
+  "likes": {}
+ }
+}
