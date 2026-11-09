@@ -33,7 +33,7 @@ function refreshBeds() {
 }
 export function soundLevels() { // 测试用
   const v = (a) => (a && !a.paused ? Math.round(a.volume * 100) / 100 : 0);
-  return { harp: !!musicTimer, scene: v(ambEl), sea: v(layerEls.sea), birds: v(layerEls.birds) };
+  return { harp: !!musicTimer || !!(trackEl && !trackEl.paused), track: v(trackEl), scene: v(ambEl), sea: v(layerEls.sea), birds: v(layerEls.birds) };
 }
 
 function ensure() {
@@ -91,8 +91,20 @@ function drum(t, vol = 0.12) {
   o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.25);
 }
 
+// 录好的整段音乐（结局用）：theme 写成 'track:文件名'，放在 assets/audio/music/
+let trackEl = null;
+const TRACK_VOL = 0.45;
+function playTrack(name) {
+  stopMusic();
+  try {
+    const a = new Audio(`assets/audio/music/${name}.mp3`);
+    a.loop = true; a.volume = 0; trackEl = a;
+    if (!muted) { const p = a.play(); if (p) p.catch(() => {}); fade(a, narrating ? TRACK_VOL * 0.3 : TRACK_VOL, 1500); }
+  } catch {}
+}
 export function playMusic(theme = 'day') {
   lastTheme = theme;
+  if (String(theme).startsWith('track:')) { if (SOUND.harp) playTrack(theme.slice(6)); else stopMusic(); return; }
   if (narrating || !SOUND.harp) return; // 小知识朗读时先不放音乐，读完再恢复
   if (!ensure()) return;
   stopMusic();
@@ -114,7 +126,10 @@ export function playMusic(theme = 'day') {
   tick();
   musicTimer = setInterval(tick, step * 1000);
 }
-export function stopMusic() { if (musicTimer) clearInterval(musicTimer); musicTimer = null; }
+export function stopMusic() {
+  if (musicTimer) clearInterval(musicTimer); musicTimer = null;
+  if (trackEl) { const a = trackEl; trackEl = null; fade(a, 0, 500, () => a.pause()); }
+}
 
 // 音效：优先播放 assets/audio 里生成的音效文件，找不到时退回到合成音。
 const SFX_FILES = { click: 'sfx_click', next: 'sfx_next', good: 'sfx_good', bad: 'sfx_bad', coin: 'sfx_coin', week: 'sfx_week', wave: 'sfx_wave', thunder: 'sfx_thunder', ending: 'sfx_ending' };
@@ -199,22 +214,26 @@ export function setMuted(m) {
   if (master) master.gain.value = m ? 0 : 0.5;
   if (ctx && ctx.state === 'suspended') ctx.resume();
   refreshBeds();
+  if (trackEl) { if (m) trackEl.pause(); else { trackEl.volume = TRACK_VOL; const p = trackEl.play(); if (p) p.catch(() => {}); } }
   if (m) { stopVoice(); stopNarration(); }
 }
 export function unlock() {
   if (ensure() && ctx.state === 'suspended') ctx.resume();
   refreshBeds();
+  if (trackEl && !muted && trackEl.paused) { const p = trackEl.play(); if (p) p.catch(() => {}); }
 }
 
 // 小知识朗读：播放时暂停音乐、把环境声压到很小、停掉其他语音；读完或停止后恢复
 let narEl = null, narTimer = null, narEnd = null;
 export function isNarrating() { return narrating; }
-export function narrate(src, start, dur, onEnd) {
+export function narrate(src, start, dur, onEnd, opts = {}) {
   stopNarration(false);
   if (muted || !src) return false;
   narrating = true; narEnd = onEnd || null;
   stopVoice();
-  const hadMusic = !!musicTimer; stopMusic(); narrate.hadMusic = hadMusic;
+  // 录好的音乐（结局）只是调小，不停；合成的竖琴音乐先停，读完再恢复
+  if (opts.keepMusic && trackEl) { narrate.hadMusic = false; fade(trackEl, TRACK_VOL * 0.3, 500); }
+  else { const hadMusic = !!musicTimer || !!trackEl; stopMusic(); narrate.hadMusic = hadMusic; }
   refreshBeds();
   try {
     let a = packs[src];
@@ -224,13 +243,13 @@ export function narrate(src, start, dur, onEnd) {
       if (narEl !== a) return;
       a.currentTime = start;
       const p = a.play(); if (p) p.catch(() => stopNarration());
-      narTimer = setTimeout(() => stopNarration(), dur * 1000 + 150);
+      narTimer = setTimeout(() => stopNarration(true, 'end'), dur * 1000 + 150);
     };
     if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, { once: true });
   } catch { stopNarration(); return false; }
   return true;
 }
-export function stopNarration(restore = true) {
+export function stopNarration(restore = true, reason = 'stop') {
   if (!narrating) return;
   clearTimeout(narTimer); narTimer = null;
   if (narEl) narEl.pause();
@@ -238,7 +257,8 @@ export function stopNarration(restore = true) {
   const cb = narEnd; narEnd = null;
   if (restore) {
     refreshBeds();
-    if (narrate.hadMusic && lastTheme) playMusic(lastTheme);
+    if (trackEl && !muted) fade(trackEl, TRACK_VOL, 700);
+    else if (narrate.hadMusic && lastTheme) playMusic(lastTheme);
   }
-  if (cb) cb();
+  if (cb) cb(reason);
 }

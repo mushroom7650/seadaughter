@@ -19,7 +19,7 @@ import { DUELS } from './data/monsters.js';
 const app = document.getElementById('app');
 let S = null;            // 当前存档状态
 let current = () => {};  // 当前画面，切换语言时重绘
-const DATA = { wardrobe: null, furniture: null, items: null, lines: null, notes: null };
+const DATA = { wardrobe: null, furniture: null, items: null, lines: null, notes: null, endings: null };
 // 另外几个助手生成的清单（衣橱坐标、家具、礼物、整句配音）；没有时相关功能自动隐藏
 // 清单里的文件名统一成相对 assets/img/ 的写法
 function fixFiles(d) { if (d) for (const v of Object.values(d)) if (v && v.file) v.file = v.file.replace(/^assets\/img\//, ''); return d; }
@@ -30,6 +30,7 @@ const dataReady = Promise.all([
   loadJSON('assets/img/items.json').then((d) => { DATA.items = fixFiles(d); }),
   loadJSON('assets/audio/lines/index.json').then((d) => { DATA.lines = d; }),
   loadJSON('assets/audio/notes/index.json').then((d) => { DATA.notes = d; }),
+  loadJSON('assets/audio/endings/index.json').then((d) => { DATA.endings = d; }),
   G.randomReady,
 ]);
 
@@ -612,6 +613,32 @@ function endOfWeek() {
 
 // ---------- 结局 ----------
 const ENDING_SCENE = { defeat: 'hall', sailedAway: 'shore', returnSea: 'shore', defier: 'storm', family: 'room', athena: 'temple', navigator: 'harbor', archer: 'hall', bard: 'agora', priestess: 'temple', herder: 'pasture', envoy: 'agora', guardian: 'hall', ordinary: 'agora' };
+// 结局音乐：三种心情，各一段录好的原创器乐
+const ENDING_MOOD = { heroine: 'heroic', blessed: 'heroic', defier: 'heroic', athena: 'heroic', navigator: 'heroic', archer: 'heroic', guardian: 'heroic',
+  family: 'warm', ordinary: 'warm', bard: 'warm', priestess: 'warm', herder: 'warm', envoy: 'warm', sailedAway: 'warm',
+  defeat: 'sorrow', returnSea: 'sorrow', monster: 'sorrow', assassin: 'sorrow' };
+export const endingMood = (id) => ENDING_MOOD[id] || 'warm';
+// 结局朗读：结局正文 + 性格尾声，按顺序读；音乐调小但不停
+function endingSegs(texts) {
+  const lang = getLang(), idx = DATA.endings && DATA.endings[lang];
+  return texts.map((x) => idx && idx[lineKey(x.zh)]).filter(Boolean).map((g) => ({ src: `assets/audio/endings/${lang}_${g[0]}.mp3`, start: g[1], dur: g[2] }));
+}
+function bindEndingVoice(texts, autoplay) {
+  const btn = app.querySelector('#b-end-voice'); if (!btn) return;
+  const label = (on) => { btn.textContent = on ? `■ ${T('停止朗读', 'Stop')}` : `▶ ${T('听结局', 'Listen')}`; btn.classList.toggle('playing', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+  const play = () => {
+    const segs = endingSegs(texts); if (!segs.length || audio.isMuted()) return;
+    let k = 0; label(true);
+    const next = () => {
+      if (k >= segs.length || !btn.isConnected) { if (btn.isConnected) label(false); return; }
+      const g = segs[k++];
+      audio.narrate(g.src, g.start, g.dur, (why) => { if (why === 'end') next(); else if (btn.isConnected) label(false); }, { keepMusic: true });
+    };
+    next();
+  };
+  btn.addEventListener('click', () => { if (audio.isNarrating()) audio.stopNarration(); else play(); });
+  if (autoplay) setTimeout(play, 600);
+}
 const ENDING_FACE = { defeat: null, sailedAway: null, returnSea: 'tearful', defier: 'determined', family: 'tearful' };
 async function finishGame() {
   G.finish(S);
@@ -624,6 +651,7 @@ async function finishGame() {
   const face = done.ending in ENDING_FACE ? ENDING_FACE[done.ending] : (done.personality === 'hedgehog' ? 'smirk' : 'happy');
   enterScene(scene);
   audio.sfx('ending');
+  audio.playMusic(`track:end_${endingMood(done.ending)}`);
   // 先全屏揭晓结局插图和名字，点"继续"再看结局文字
   const E0 = ENDINGS[done.ending];
   show(() => {
@@ -636,7 +664,7 @@ async function finishGame() {
     const E = ENDINGS[done.ending];
     html(`<div class="vn">${sceneHtml(scene, face, '', { cg: `cg_end_${done.ending}`, cgIone: true })}
       <div class="card ending" data-testid="ending">
-      <p class="muted">${esc(t('ending'))}</p>
+      <div class="row between"><p class="muted">${esc(t('ending'))}</p>${endingSegs([E.text]).length ? `<button class="note-play" id="b-end-voice" data-testid="ending-play" aria-pressed="false">▶ ${esc(T('听结局', 'Listen'))}</button>` : ''}</div>
       <h2 data-testid="ending-name">${esc(t(E.name))}</h2>
       <p class="line">${esc(t(E.text))}</p>
       <p class="line">${esc(t(EPILOGUE[done.personality]))}</p>
@@ -645,9 +673,11 @@ async function finishGame() {
       <div class="row"><button class="primary" id="b-gal" data-testid="gallery">${esc(T('结局图鉴', 'Ending Gallery'))}</button>
       <button id="b-rec" data-testid="records">${esc(t('records'))}</button>
       <button id="b-title" data-testid="to-title">${esc(t('toTitle'))}</button></div></div></div>`);
+    bindEndingVoice([E.text, EPILOGUE[done.personality]], !endingText.played);
+    endingText.played = true;
     on('#b-rec', () => show(recordsScreen));
     on('#b-gal', () => galleryScreen(titleScreen));
-    on('#b-title', () => show(titleScreen));
+    on('#b-title', () => { audio.stopNarration(false); audio.playMusic('title'); show(titleScreen); });
   }
 }
 
