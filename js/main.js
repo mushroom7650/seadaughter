@@ -10,7 +10,7 @@ import { VOICE } from './data/voice.js';
 import { ROOMS } from './data/rooms.js';
 import { t, getLang, setLang } from './i18n.js';
 import * as audio from './audio.js';
-import { SLOTS, saveGame, loadGame, RecordsBackend } from './storage.js';
+import { SLOTS, saveGame, loadGame, RecordsBackend, exportCode, importCode } from './storage.js';
 import { initWeekend, weekendMenu } from './ui/weekend.js';
 import { initDreams, runDream } from './ui/dreams.js';
 import { stopMinigame, duel } from './ui/minigames.js';
@@ -610,13 +610,45 @@ function slotScreen(mode) {
   }).join('');
   html(`<div class="card"><h3>${esc(t(mode === 'save' ? 'save' : 'load'))}</h3>
     <div class="choices">${rows}</div>
-    <div class="row" style="margin-top:16px"><button id="b-back" data-testid="back">${esc(t('back'))}</button></div></div>`);
+    <div class="row" style="margin-top:16px;flex-wrap:wrap;gap:8px">
+      <button id="b-export" data-testid="export-code">${esc(T('导出存档码', 'Export save code'))}</button>
+      <button id="b-import" data-testid="import-code">${esc(T('导入存档码', 'Import save code'))}</button>
+      <button id="b-back" data-testid="back">${esc(t('back'))}</button></div>
+    <p class="muted" style="margin-top:10px">${esc(T('存档只保存在这个浏览器里。换网址、换设备前，先导出存档码，再到新地方导入。', 'Saves live only in this browser. To move to another site or device, export a save code here and import it there.'))}</p></div>`);
+  on('#b-export', () => transferScreen('export', () => slotScreen(mode)));
+  on('#b-import', () => transferScreen('import', () => slotScreen(mode)));
   on('[data-slot]', (e, el) => {
     const slot = el.dataset.slot === 'auto' ? 'auto' : Number(el.dataset.slot);
     if (mode === 'save') { saveGame(slot, S); toast(t('saved')); current(); }
     else resume(loadGame(slot).state);
   });
   on('#b-back', () => show(mode === 'save' ? homeScreen : titleScreen));
+}
+
+// 存档码：导出 / 导入（搬家用）
+function transferScreen(kind, back) {
+  const isEx = kind === 'export', code = isEx ? exportCode() : '';
+  html(`<div class="card" data-testid="transfer-${kind}"><h3>${esc(isEx ? T('导出存档码', 'Export save code') : T('导入存档码', 'Import save code'))}</h3>
+    <p class="muted">${esc(isEx ? T('复制下面整段文字，保存好（可以发给自己）。到新的网址或设备上，点"导入存档码"粘贴进去。', 'Copy the whole text below and keep it somewhere (e.g. send it to yourself). On the new site or device, tap "Import save code" and paste it.')
+      : T('把之前导出的存档码整段粘贴到下面，然后点"导入"。同一个存档位会保留较新的那份。', 'Paste the whole save code you exported, then tap Import. For each slot, the newer save is kept.'))}</p>
+    <textarea id="code" data-testid="save-code" rows="6" style="width:100%;font-size:12px;word-break:break-all" ${isEx ? 'readonly' : ''} placeholder="IONE1:...">${esc(code)}</textarea>
+    <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px">
+      ${isEx ? `<button class="primary" id="b-copy" data-testid="copy-code">${esc(T('复制', 'Copy'))}</button>` : `<button class="primary" id="b-do" data-testid="do-import">${esc(T('导入', 'Import'))}</button>`}
+      <button id="b-back" data-testid="back">${esc(t('back'))}</button></div></div>`);
+  const ta = document.getElementById('code');
+  on('#b-copy', async () => {
+    ta.select();
+    let ok = false;
+    try { await navigator.clipboard.writeText(code); ok = true; } catch { try { ok = document.execCommand('copy'); } catch {} }
+    toast(ok ? T('已复制', 'Copied') : T('请长按文字手动复制', 'Select the text and copy it manually'));
+  });
+  on('#b-do', () => {
+    const n = importCode(ta.value);
+    if (n < 0) { toast(T('存档码不对，请检查是否复制完整', 'That code is not valid. Check it was copied completely.')); return; }
+    toast(T(`导入成功：${n} 个存档`, `Imported ${n} save(s)`));
+    back();
+  });
+  on('#b-back', back);
 }
 
 function resume(state) {
