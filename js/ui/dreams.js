@@ -47,8 +47,9 @@ function reward(d, score, then) {
     c.html(`<div class="card note-card" data-testid="dream-reward"><div class="eyebrow">${c.esc(t(d.title))}</div>
       <p class="line">${c.esc(got ? T('她把梦里的东西带回来了：', 'She brought something back from the dream:') : T('梦醒了，什么也没带回来。下次再试试吧。', 'She woke with empty hands. Maybe next time.'))}</p>
       ${items.length ? `<ul>${items.map((x) => `<li>${c.esc(x)}</li>`).join('')}</ul>` : ''}
-      ${d.note ? `<p class="note">${c.esc(t(d.note))}</p>` : ''}
+      ${d.note ? `<div class="row between" style="margin-top:10px"><span class="eyebrow">${c.esc(T('小知识', 'History note'))}</span>${c.noteAudioHtml(d.note)}</div><p class="note">${c.esc(t(d.note))}</p>` : ''}
       <button class="primary" data-testid="next" id="b-next">${c.esc(t('next'))}</button></div>`);
+    if (d.note) c.bindNoteAudio(d.note);
     c.on('#b-next', wake, 'next');
   });
 }

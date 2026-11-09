@@ -25,7 +25,7 @@ export const DUELS = {
 
 export const MONSTER_EVENTS = [
   {
-    id: 'mon_harpies', month: 3, week: 1, scene: 'hall', cg: 'cg_mon_harpies',
+    id: 'mon_harpies', month: 3, week: 1, scene: 'hall', cg: 'cg_mon_harpies', cgIone: true,
     lines: [
       L('narrator', '求婚者的宴会正闹得最凶的时候，屋顶的天窗忽然暗了下来。两个长着女人面孔、鸟翅膀和铁爪子的怪物俯冲进大厅。', 'At the height of the suitors\' feast, the light from the roof-opening suddenly darkens. Two creatures with women\'s faces, bird wings and iron talons dive into the hall.'),
       L('nurse', '哈耳庇厄！是"抢夺者"！快护住孩子们！', 'Harpies! The Snatchers! Protect the children!'),
@@ -47,7 +47,7 @@ export const MONSTER_EVENTS = [
       'The Harpies were "the Snatchers". Odyssey Book 20 says they swept away the daughters of Pandareus; in the Argonauts\' tale they kept stealing the blind seer Phineus\'s food. Greeks used them to explain sudden gusts and people who vanished without a trace.'),
   },
   {
-    id: 'mon_boar', month: 4, week: 4, scene: 'pasture', cg: 'cg_mon_boar',
+    id: 'mon_boar', month: 4, week: 4, scene: 'pasture', cg: 'cg_mon_boar', cgIone: true,
     lines: [
       L('eumaeus', '涅里同山上来了一头巨野猪，一夜之间踩烂了三块田，还撞死了我两头猪。', 'A giant boar has come down from Mount Neriton. In one night it trampled three fields and killed two of my pigs.'),
       L('eumaeus', '主人年轻时也遇到过这样一头。在帕尔纳索斯山上，獠牙划破了他的膝盖，留下一道长长的疤。', 'The master met one like it when he was young. On Mount Parnassus its tusk tore open his knee and left a long scar.'),
@@ -69,7 +69,7 @@ export const MONSTER_EVENTS = [
       'Odyssey Book 19 tells how young Odysseus hunted a boar on Mount Parnassus and got the knee scar by which his nurse later knew him. At the Calydonian boar hunt, the huntress Atalanta drew first blood and won the boar\'s hide as the prize of honor — in Greek myth a girl could be a hero too.'),
   },
   {
-    id: 'mon_sirens', month: 6, week: 1, scene: 'harbor', cg: 'cg_mon_sirens',
+    id: 'mon_sirens', month: 6, week: 1, scene: 'harbor', cg: 'cg_mon_sirens', cgIone: true,
     lines: [
       L('narrator', '她和狄翁划船去远处的礁石下网。风停了，海面平得像镜子。然后，歌声从开满花的岩石上飘了过来。', 'She and Dion row out to the far rocks to set their nets. The wind dies; the sea goes glassy. Then a song drifts from the flowering rocks.'),
       L('siren', '伊俄涅……伊俄涅……到我们这里来。我们知道你从哪里来，知道你的母亲是谁……', 'Ione... Ione... come to us. We know where you come from. We know who your mother is...'),
@@ -91,7 +91,7 @@ export const MONSTER_EVENTS = [
       'Odyssey Book 12: Circe tells Odysseus to stop his men\'s ears with beeswax and have himself bound to the mast, so he can hear the Sirens and live. On Greek vases Sirens are bird-bodied women — not the mermaids of later stories. Orpheus is said to have drowned out their song with his own music.'),
   },
   {
-    id: 'mon_scylla', month: 8, week: 4, scene: 'storm', cg: 'cg_mon_scylla',
+    id: 'mon_scylla', month: 8, week: 4, scene: 'storm', cg: 'cg_mon_scylla', cgIone: true,
     lines: [
       L('narrator', '报信回来的路上，风暴把小船卷进了一道窄窄的海峡。一边是能吞下整条船的漩涡，一边是高耸的悬崖，崖上有个黑洞洞的山洞。', 'On the way back from warning the prince, a storm drives their little boat into a narrow strait. On one side, a whirlpool that could swallow a ship; on the other, a towering cliff with a black cave.'),
       L('dion', '那……那是卡律布狄斯！另一边是——', 'That... that\'s Charybdis! And the other side is—', ),
@@ -114,7 +114,7 @@ export const MONSTER_EVENTS = [
       'Odyssey Book 12: Scylla lives in a cave on one side of a strait, with six heads; opposite her is the swallowing whirlpool Charybdis. Odysseus chose to pass near Scylla, losing six men but saving the ship. "Between Scylla and Charybdis" still means having to choose between two dangers.'),
   },
   {
-    id: 'mon_ketos', month: 11, week: 4, scene: 'storm', cg: 'cg_mon_ketos',
+    id: 'mon_ketos', month: 11, week: 4, scene: 'storm', cg: 'cg_mon_ketos', cgIone: true,
     lines: [
       L('narrator', '风暴第三次来到伊萨卡，这一次比任何一次都可怕。港口的海水翻起来，一条巨大的海怪从浪里昂起头。', 'The storm comes to Ithaca a third time, worse than ever. The harbor water heaves, and a vast sea serpent rears its head out of the waves.'),
       L('poseidon', '伊俄涅。你不来，我就让它把这座岛吞掉。', 'Ione. If you do not come, I will let it swallow this island.'),

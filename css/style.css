@@ -93,7 +93,7 @@ input[type=text] { font: inherit; padding: 8px 12px; border-radius: 8px; border:
   .vn { display: block; position: relative; }
   .vn .dialogue {
     position: absolute; left: 20px; right: 20px; bottom: 16px; max-height: 52%;
-    background: rgba(255,250,240,.94); backdrop-filter: blur(3px); box-shadow: 0 8px 30px rgba(0,0,0,.25);
+    background: rgba(255,250,240,.94); backdrop-filter: blur(3px); box-shadow: 0 8px 30px rgba(0,0,0,.25); z-index: 5;
   }
   .vn .scene .ione { height: 96%; }
 }
@@ -125,6 +125,8 @@ body.storm .card { background: rgba(255,250,240,.96); }
 .scene.has-npc .ione, .scene.has-npc .ione-dressed { left: 68%; }
 @keyframes npc-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; } }
 .scene.is-cg { background-position: center; }
+/* 房间图：宽画面时贴底裁切（裁掉天花板而不是地板），这样她总是站在地板上，不会站到床上 */
+.scene.room { background-position: center bottom; }
 .scene.is-cg .npc { display: none; }
 .dressed { position: relative; height: 100%; width: auto; }
 .dressed img { position: absolute; }
@@ -310,3 +312,25 @@ body.dream { background: linear-gradient(180deg, #23214a 0%, #3b2f5e 70%); }
 .duel-round { position: absolute; left: 10px; bottom: 8px; color: #f3e2b0; font-size: 13px; }
 .duel-keys button small { font-size: 12px; display: block; }
 .duel-keys button.hint, .duel-keys button.primary.hint { box-shadow: 0 0 0 3px #ffd36b, 0 0 16px #ffb03b; animation: arrow-pulse .5s ease-in-out infinite alternate; }
+
+/* 云存档 */
+.cloud-box { margin-top: 16px; padding: 12px 14px; border: 1px dashed var(--gold, #c9a24a); border-radius: 12px; background: rgba(255,255,255,.45); }
+.cloud-box p { margin: 6px 0; }
+.cloud-box code { font-size: 1.15em; letter-spacing: 2px; font-weight: 700; user-select: all; }
+
+/* 小知识朗读按钮 */
+.note-play { padding: 6px 14px; font-size: 14px; border-radius: 999px; white-space: nowrap; }
+.note-play.playing { background: var(--sea); color: #fff; }
+
+/* 声音面板 */
+#sound-panel { position: fixed; top: calc(48px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); z-index: 20;
+  width: min(260px, calc(100vw - 24px)); padding: 12px 14px; border-radius: 14px; background: var(--paper); border: 1px solid var(--gold);
+  box-shadow: 0 10px 30px rgba(0,0,0,.2); display: flex; flex-direction: column; gap: 6px; }
+#sound-panel .muted { font-size: 12px; margin: 4px 0 0; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 2px; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch i { flex: none; position: relative; width: 44px; height: 24px; border-radius: 12px; background: #cfc6b4; transition: background .2s; }
+.switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s; }
+.switch input:checked + i { background: var(--sea); }
+.switch input:checked + i::after { transform: translateX(20px); }
+.switch input:focus-visible + i { outline: 2px solid var(--meander); outline-offset: 2px; }

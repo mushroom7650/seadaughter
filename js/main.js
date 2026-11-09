@@ -10,7 +10,7 @@ import { VOICE } from './data/voice.js';
 import { ROOMS } from './data/rooms.js';
 import { t, getLang, setLang } from './i18n.js';
 import * as audio from './audio.js';
-import { SLOTS, saveGame, loadGame, RecordsBackend, exportCode, importCode } from './storage.js';
+import { SLOTS, saveGame, loadGame, RecordsBackend, exportCode, importCode, cloudCode, fmtCode, pullCloud, useCloudCode, syncNow } from './storage.js';
 import { initWeekend, weekendMenu } from './ui/weekend.js';
 import { initDreams, runDream } from './ui/dreams.js';
 import { stopMinigame, duel } from './ui/minigames.js';
@@ -19,7 +19,7 @@ import { DUELS } from './data/monsters.js';
 const app = document.getElementById('app');
 let S = null;            // 当前存档状态
 let current = () => {};  // 当前画面，切换语言时重绘
-const DATA = { wardrobe: null, furniture: null, items: null, lines: null };
+const DATA = { wardrobe: null, furniture: null, items: null, lines: null, notes: null };
 // 另外几个助手生成的清单（衣橱坐标、家具、礼物、整句配音）；没有时相关功能自动隐藏
 // 清单里的文件名统一成相对 assets/img/ 的写法
 function fixFiles(d) { if (d) for (const v of Object.values(d)) if (v && v.file) v.file = v.file.replace(/^assets\/img\//, ''); return d; }
@@ -29,13 +29,14 @@ const dataReady = Promise.all([
   loadJSON('assets/img/furniture.json').then((d) => { DATA.furniture = fixFiles(d); }),
   loadJSON('assets/img/items.json').then((d) => { DATA.items = fixFiles(d); }),
   loadJSON('assets/audio/lines/index.json').then((d) => { DATA.lines = d; }),
+  loadJSON('assets/audio/notes/index.json').then((d) => { DATA.notes = d; }),
   G.randomReady,
 ]);
 
 // ---------- 小工具 ----------
 const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(fn) {
-  stopMinigame(); current = fn; fn(); window.scrollTo(0, 0);
+  stopMinigame(); audio.stopNarration(); if (S) audio.setProgress(S.week); current = fn; fn(); window.scrollTo(0, 0);
   if (S && !S.ending) saveGame('auto', S); // 自动存档：每换一个画面存一次（S.phase 记住这一周进行到哪一步）
   placePets();
 }
@@ -148,11 +149,29 @@ const btnLang = document.getElementById('btn-lang'), btnMute = document.getEleme
 function renderTopbar() {
   btnLang.textContent = t('langBtn');
   btnMute.textContent = audio.isMuted() ? t('unmute') : t('mute');
+  btnSound.textContent = T('声音', 'Sound');
+  if (document.getElementById('sound-panel')) soundPanel(true);
   document.documentElement.lang = getLang() === 'zh' ? 'zh' : 'en';
   document.title = getLang() === 'zh' ? '伊萨卡的海之女' : 'Ione of Ithaca';
 }
-btnLang.addEventListener('click', () => { setLang(getLang() === 'zh' ? 'en' : 'zh'); renderTopbar(); current(); });
+btnLang.addEventListener('click', () => { audio.stopNarration(); setLang(getLang() === 'zh' ? 'en' : 'zh'); renderTopbar(); current(); });
 btnMute.addEventListener('click', () => { audio.setMuted(!audio.isMuted()); renderTopbar(); });
+// 声音面板：竖琴音乐 / 大海 / 鸟鸣 / 场景环境声，各自开关
+const btnSound = document.getElementById('btn-sound');
+const SOUND_ITEMS = [['harp', '竖琴音乐', 'Lyre music'], ['sea', '大海', 'Sea'], ['birds', '鸟鸣', 'Birds'], ['scene', '场景环境声', 'Scene sounds']];
+function soundPanel(open) {
+  let el = document.getElementById('sound-panel');
+  if (!open) { if (el) el.remove(); btnSound.setAttribute('aria-expanded', 'false'); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'sound-panel'; el.setAttribute('role', 'dialog'); document.body.appendChild(el); }
+  const st = audio.getSound();
+  el.innerHTML = `<b>${esc(T('背景声音', 'Background sound'))}</b>${SOUND_ITEMS.map(([k, zh, en]) =>
+    `<label class="switch"><span>${esc(T(zh, en))}</span><input type="checkbox" role="switch" data-sound="${k}" data-testid="sound-${k}" ${st[k] ? 'checked' : ''}><i></i></label>`).join('')}
+    ${audio.isMuted() ? `<p class="muted">${esc(T('现在是静音，开关会在取消静音后生效。', 'Sound is muted; these apply when you unmute.'))}</p>` : ''}`;
+  el.querySelectorAll('[data-sound]').forEach((cb) => cb.addEventListener('change', () => { audio.unlock(); audio.setSound(cb.dataset.sound, cb.checked); }));
+  btnSound.setAttribute('aria-expanded', 'true');
+}
+btnSound.addEventListener('click', (e) => { e.stopPropagation(); soundPanel(!document.getElementById('sound-panel')); });
+document.addEventListener('click', (e) => { const el = document.getElementById('sound-panel'); if (el && !el.contains(e.target) && e.target !== btnSound) soundPanel(false); });
 document.addEventListener('pointerdown', () => audio.unlock());
 
 // ---------- 标题 ----------
@@ -202,7 +221,7 @@ function setupScreen() {
   on('#b-start', () => {
     S = G.newGame(setup.name.trim() || t('defaultName'), setup.pet, setup.mentor);
     setup = { name: '', pet: null, mentor: 'm' };
-    audio.playMusic('day');
+    audio.setProgress(S.week); audio.playMusic('day');
     runEvents([G.openingEvent()], () => tutorial(() => { S.tutorialSeen = true; autosave(); show(homeScreen); }));
   }, 'good');
 }
@@ -229,11 +248,31 @@ function playLines(lines, done, scene = 'room', idx = 0, face = null, opts = {},
     on('#b-next', () => playLines(lines, done, scene, idx + 1, f, opts, n), 'next');
   });
 }
+// 小知识朗读：卡片上的"听一听"按钮。播放时音乐和环境声让开，读完/离开后恢复
+function noteSeg(note) {
+  const lang = getLang(), idx = DATA.notes && DATA.notes[lang];
+  const seg = idx && idx[lineKey(note.zh)];
+  return seg ? { src: `assets/audio/notes/${lang}_${seg[0]}.mp3`, start: seg[1], dur: seg[2] } : null;
+}
+function noteAudioHtml(note) {
+  return noteSeg(note) ? `<button class="note-play" data-testid="note-play" id="b-note-play" aria-pressed="false">▶ ${esc(T('听一听', 'Listen'))}</button>` : '';
+}
+function bindNoteAudio(note, root = app) {
+  const btn = root.querySelector('#b-note-play'); if (!btn) return;
+  const label = (on) => { btn.textContent = on ? `■ ${T('停止', 'Stop')}` : `▶ ${T('听一听', 'Listen')}`; btn.setAttribute('aria-pressed', on ? 'true' : 'false'); btn.classList.toggle('playing', on); };
+  btn.addEventListener('click', () => {
+    if (audio.isNarrating()) { audio.stopNarration(); return; }
+    if (audio.isMuted()) { toast(T('现在是静音，先点右上角取消静音', 'Sound is muted — turn it on at the top right')); return; }
+    const seg = noteSeg(note); if (!seg) return;
+    if (audio.narrate(seg.src, seg.start, seg.dur, () => { if (btn.isConnected) label(false); })) label(true);
+  });
+}
 function noteScreen(note, done) {
   show(() => {
-    html(`<div class="card note-card" data-testid="history-note"><div class="eyebrow">${esc(T('小知识 · 历史与神话', 'History note'))}</div>
+    html(`<div class="card note-card" data-testid="history-note"><div class="row between"><div class="eyebrow">${esc(T('小知识 · 历史与神话', 'History note'))}</div>${noteAudioHtml(note)}</div>
       <p class="line">${esc(t(note))}</p><button class="primary" data-testid="next" id="b-next">${esc(t('next'))}</button></div>`);
-    on('#b-next', done, 'next');
+    bindNoteAudio(note);
+    on('#b-next', () => { audio.stopNarration(); done(); }, 'next');
   });
 }
 // 依次处理事件：台词 → 选项 → 回应台词 → 小知识；选项可以接着另一个事件（next）
@@ -380,7 +419,7 @@ function roomBonusText() {
 function furnitureBonus() { const b = S ? G.roomBonus(S) : null; return b && Object.keys(b).length ? b : null; }
 // 宠物站在房间里（海豚住在海里，用圆形动图）；点它会冒爱心
 function petHtml() {
-  if (!S) return '';
+  if (!S || !G.petArrived(S)) return '';
   const name = esc(t(PETS[S.pet]));
   if (S.pet === 'dolphin') return `<button class="pet-corner" data-testid="pet" title="${name}"><img src="assets/img/pet_dolphin_anim.webp" alt="${name}" onerror="this.onerror=null;this.src='assets/img/pet_dolphin.webp'"></button>`;
   return `<button class="pet-sprite pet-${S.pet}" data-testid="pet" title="${name}"><img src="assets/img/pet_${S.pet}_sprite.webp" alt="${name}" onerror="this.parentNode.classList.add('fallback');this.onerror=null;this.src='assets/img/pet_${S.pet}_anim.webp'"></button>`;
@@ -388,14 +427,27 @@ function petHtml() {
 // 猫头鹰停在窗台上：窗台在房间图（4:3）里大约 x=80%、y=54%；按背景 cover 裁切换算成画面坐标
 const SILL = { default: [0.8, 0.54], florence: [0.64, 0.5], vienna: [0.74, 0.54] };
 function placePets() {
+  // 对话框盖在画面上（宽屏）时，地上的宠物站到对话框上沿，不挡按钮
+  document.querySelectorAll('.vn .scene .pet-sprite:not(.pet-owl), .vn .scene .pet-corner').forEach((pet) => {
+    const vn = pet.closest('.vn'), dlg = vn && vn.querySelector('.dialogue'), box = pet.closest('.scene');
+    if (!dlg || !box) return;
+    if (getComputedStyle(dlg).position !== 'absolute') { pet.style.bottom = ''; pet.style.height = ''; pet.style.display = ''; return; }
+    const b = box.getBoundingClientRect(), d = dlg.getBoundingClientRect();
+    const room = d.top - b.top; // 对话框上面露出来的画面高度
+    if (room < 90) { pet.style.display = 'none'; return; }
+    Object.assign(pet.style, { display: '', bottom: `${b.bottom - d.top + 2}px`, height: pet.classList.contains('pet-corner') ? '' : `${Math.min(0.32 * b.height, 0.42 * room)}px` });
+    if (pet.classList.contains('pet-corner')) pet.style.width = `${Math.min(120, 0.42 * room)}px`;
+  });
   document.querySelectorAll('.scene .pet-owl').forEach((owl) => {
     const box = owl.closest('.scene'); if (!box) return;
     const cw = box.clientWidth, ch = box.clientHeight; if (!cw || !ch) return;
-    const sc = Math.max(cw / 1600, ch / 1200), iw = 1600 * sc, ih = 1200 * sc, ox = (cw - iw) / 2, oy = (ch - ih) / 2;
+    const sc = Math.max(cw / 1600, ch / 1200), iw = 1600 * sc, ih = 1200 * sc, ox = (cw - iw) / 2, oy = box.classList.contains('room') ? ch - ih : (ch - ih) / 2; // 房间图贴底
     const [fx, fy] = SILL[S && S.room] || SILL.default;
     let x = ox + fx * iw; const y = oy + fy * ih;
     x = Math.min(cw - 0.06 * ih, Math.max(0.06 * ih, x)); // 画面被裁掉时，留在画面里
     Object.assign(owl.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto', height: `${0.15 * ih}px`, transform: 'translate(-50%, -96%)' });
+    const dlg = owl.closest('.vn') && owl.closest('.vn').querySelector('.dialogue');
+    owl.style.display = dlg && getComputedStyle(dlg).position === 'absolute' && dlg.getBoundingClientRect().top - box.getBoundingClientRect().top < y ? 'none' : '';
   });
 }
 window.addEventListener('resize', () => placePets());
@@ -563,7 +615,7 @@ const ENDING_SCENE = { defeat: 'hall', sailedAway: 'shore', returnSea: 'shore', 
 const ENDING_FACE = { defeat: null, sailedAway: null, returnSea: 'tearful', defier: 'determined', family: 'tearful' };
 async function finishGame() {
   G.finish(S);
-  const rec = { name: S.playerName, ending: S.ending, personality: S.personality, score: S.score, date: new Date().toISOString().slice(0, 10) };
+  const rec = { name: S.playerName, ending: S.ending, personality: S.personality, score: S.score, date: new Date().toISOString().slice(0, 10), lang: getLang() };
   const isNew = !(await RecordsBackend.list()).some((r) => r.ending === S.ending);
   await RecordsBackend.add(rec);
   saveGame('auto', null);
@@ -614,7 +666,16 @@ function slotScreen(mode) {
       <button id="b-export" data-testid="export-code">${esc(T('导出存档码', 'Export save code'))}</button>
       <button id="b-import" data-testid="import-code">${esc(T('导入存档码', 'Import save code'))}</button>
       <button id="b-back" data-testid="back">${esc(t('back'))}</button></div>
-    <p class="muted" style="margin-top:10px">${esc(T('存档只保存在这个浏览器里。换网址、换设备前，先导出存档码，再到新地方导入。', 'Saves live only in this browser. To move to another site or device, export a save code here and import it there.'))}</p></div>`);
+    <div class="cloud-box" data-testid="cloud-box">
+      <b>☁ ${esc(T('云存档', 'Cloud save'))}</b>
+      ${cloudCode() ? `<p>${esc(T('你的云存档码：', 'Your cloud code: '))}<code data-testid="cloud-code">${esc(fmtCode(cloudCode()))}</code></p>
+        <p class="muted">${esc(T('存档会自动同步到云端。换手机或电脑时，在读档画面点"输入云存档码"，填这个码就能接着玩。请把码记下来，不要告诉别人。', 'Your saves sync to the cloud automatically. On another phone or computer, tap "Enter cloud code" on the Load screen and type this code to continue. Write it down and keep it to yourself.'))}</p>`
+        : `<p class="muted">${esc(T('开始玩以后，会自动生成你的云存档码。', 'Your cloud code is created once you start playing.'))}</p>`}
+      <button id="b-cloud" data-testid="cloud-enter">${esc(T('输入云存档码（换设备）', 'Enter cloud code (new device)'))}</button>
+    </div>
+    <p class="muted" style="margin-top:10px">${esc(T('连不上网时，也可以用"导出 / 导入存档码"手动搬存档。', 'Offline? You can also move saves by hand with Export / Import save code.'))}</p></div>`);
+  on('#b-cloud', () => cloudCodeScreen(() => slotScreen(mode)));
+  if (mode === 'load' && !slotScreen.pulled) { slotScreen.pulled = true; pullCloud().then((n) => { if (n > 0 && current && document.querySelector('[data-testid=cloud-box]')) slotScreen(mode); }); }
   on('#b-export', () => transferScreen('export', () => slotScreen(mode)));
   on('#b-import', () => transferScreen('import', () => slotScreen(mode)));
   on('[data-slot]', (e, el) => {
@@ -623,6 +684,26 @@ function slotScreen(mode) {
     else resume(loadGame(slot).state);
   });
   on('#b-back', () => show(mode === 'save' ? homeScreen : titleScreen));
+}
+
+// 云存档码：在新设备上输入
+function cloudCodeScreen(back) {
+  html(`<div class="card" data-testid="cloud-screen"><h3>☁ ${esc(T('输入云存档码', 'Enter cloud code'))}</h3>
+    <p class="muted">${esc(T('填写你在另一台设备上看到的 10 位云存档码（有没有短横线都可以）。读取后，这台设备也会和那个码一起同步。', 'Type the 10-character cloud code from your other device (the dash is optional). After loading, this device syncs with that code too.'))}</p>
+    <input id="cc" data-testid="cloud-input" maxlength="16" autocomplete="off" autocapitalize="characters" placeholder="ABCDE-FGHJK" style="width:100%;font-size:20px;letter-spacing:2px;text-transform:uppercase">
+    <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px">
+      <button class="primary" id="b-go" data-testid="cloud-go">${esc(T('读取', 'Load'))}</button>
+      <button id="b-back" data-testid="back">${esc(t('back'))}</button></div></div>`);
+  const btn = document.getElementById('b-go');
+  on('#b-go', async () => {
+    btn.disabled = true; btn.textContent = T('读取中…', 'Loading…');
+    const n = await useCloudCode(document.getElementById('cc').value);
+    if (n === -2) { toast(T('连不上云端，请检查网络后再试', 'Cannot reach the cloud. Check your connection and try again.')); }
+    else if (n < 0) { toast(T('没有找到这个云存档码，请检查是否填对', 'No save found for that code. Check it and try again.')); }
+    else { toast(T(`读取成功：${n} 个存档`, `Loaded ${n} save(s)`)); back(); return; }
+    btn.disabled = false; btn.textContent = T('读取', 'Load');
+  });
+  on('#b-back', back);
 }
 
 // 存档码：导出 / 导入（搬家用）
@@ -652,7 +733,7 @@ function transferScreen(kind, back) {
 }
 
 function resume(state) {
-  S = G.migrate(state); audio.playMusic('day');
+  S = G.migrate(state); audio.setProgress(S.week); audio.playMusic('day');
   const ph = S.phase || 'plan';
   if (ph === 'respond') show(weekendScreen);
   else if (ph === 'story') weekendStory();
@@ -663,21 +744,22 @@ function resume(state) {
 // ---------- 记录殿堂 ----------
 let recordsCache = [];
 function recordsScreen() {
-  RecordsBackend.list().then((all) => { recordsCache = all; drawRecords(); });
-  drawRecords();
+  recordsCache = null; drawRecords();
+  RecordsBackend.hall().then((h) => { recordsCache = h; if (document.querySelector('[data-testid=hall]')) drawRecords(); });
 }
 function drawRecords() {
-  const all = recordsCache;
-  const top = [...all].sort((a, b) => b.score - a.score).slice(0, 20);
-  const counts = {}; all.forEach((r) => { counts[r.ending] = (counts[r.ending] || 0) + 1; });
-  html(`<div class="card" data-testid="hall">
+  const h = recordsCache || { top: [], endings: [], loading: true };
+  const top = h.top;
+  const counts = {}; h.endings.forEach((e) => { counts[e] = (counts[e] || 0) + 1; });
+  html(`<div class="card" data-testid="hall" data-shared="${h.shared ? 1 : 0}">
     <h2>${esc(t('records'))}</h2>
+    <p class="muted">${esc(h.loading ? T('正在读取…', 'Loading…') : h.shared ? T(`所有玩家的通关记录（共 ${h.endings.length} 次通关）`, `Every player's finished games (${h.endings.length} in total)`) : T('暂时连不上云端，下面是这台设备上的记录。', 'Cannot reach the cloud right now; showing this device only.'))}</p>
     <h3>${esc(t('rank'))}</h3>
     ${top.length ? `<div class="table-wrap"><table data-testid="leaderboard"><tr><th>#</th><th></th><th>${esc(t('ending'))}</th><th>${esc(t('personality'))}</th><th>${esc(t('score'))}</th><th></th></tr>
       ${top.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td>${esc(t(ENDINGS[r.ending]?.name || { zh: r.ending, en: r.ending }))}</td>
       <td>${esc(t(PERSONALITIES[r.personality] || { zh: '', en: '' }))}</td><td>${r.score}</td><td class="muted">${esc(r.date)}</td></tr>`).join('')}</table></div>`
       : `<p class="muted">${esc(t('noRecords'))}</p>`}
-    <h3>${esc(t('gallery'))}</h3>
+    <h3>${esc(T('大家达成的结局', 'Endings reached by all players'))}</h3>
     <table data-testid="gallery">${Object.entries(ENDINGS).map(([id, E]) =>
       `<tr><td>${counts[id] ? esc(t(E.name)) : '？？？'}</td><td class="muted">${esc(t('times', { n: counts[id] || 0 }))}</td></tr>`).join('')}</table>
     <div class="row" style="margin-top:16px"><button id="b-title" data-testid="to-title">${esc(t('toTitle'))}</button></div></div>`);
@@ -687,7 +769,7 @@ function drawRecords() {
 // ---------- 交给周末和梦境模块用的工具 ----------
 const ctx = {
   get S() { return S; }, DATA, app, esc, T, show, html, on, toast, fill, sceneHtml, roomHtml, dressedHtml, enterScene, speak, playLines,
-  runEvents, noteScreen, moodFace, endOfWeek, homeScreen, dateHtml, current: () => current(), autosave, petHtml, portraitOf, hearts,
+  runEvents, noteScreen, noteAudioHtml, bindNoteAudio, moodFace, endOfWeek, homeScreen, dateHtml, current: () => current(), autosave, petHtml, portraitOf, hearts,
 };
 initWeekend(ctx);
 initDreams(ctx);
@@ -695,10 +777,11 @@ initDreams(ctx);
 // ---------- 启动 ----------
 renderTopbar();
 show(titleScreen);
-dataReady.then(() => { if (!S) current(); });
+dataReady.then(() => { if (!S) current(); pullCloud().then((n) => { if (n > 0 && current === titleScreen) show(titleScreen); }); });
 // 测试和调试用：读取状态、直接载入一个存档状态并回到主画面
 window.__ione = {
   get state() { return S; }, EVENTS, DATA, ready: dataReady,
-  load(state) { S = G.migrate(JSON.parse(JSON.stringify(state))); audio.playMusic('day'); show(homeScreen); },
+  load(state) { S = G.migrate(JSON.parse(JSON.stringify(state))); audio.setProgress(S.week); audio.playMusic('day'); show(homeScreen); },
+  showNote(note) { noteScreen(note, () => show(homeScreen)); },
   newState(name = 'T', pet = 'owl', mentor = 'm') { return G.newGame(name, pet, mentor); },
 };

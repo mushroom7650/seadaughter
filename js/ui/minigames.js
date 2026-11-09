@@ -26,7 +26,7 @@ const HOWTO = {
     S_('✛', '等十字准星正好落在靶心（中间金色）时，点"放箭"或按空格。', 'When the crosshair is right over the gold bullseye, tap "Loose" or press Space.'),
     S_('🏹', '一共 5 支箭。越靠近靶心分越高，前两支箭靶子会慢一点。', '5 arrows in all. Closer to the centre scores more; the first two arrows move slower.')],
   kitchen: [S_('↔', '指针会在长条上来回摆动。', 'A pointer swings back and forth along the bar.'),
-    S_('🍯', '指针走到金色区域里时，点"停"。', 'Tap "Stop" while the pointer is inside the golden zone.'),
+    S_('🍯', '指针走到金色区域里时，点"停"或按空格。', 'Tap "Stop" or press Space while the pointer is inside the golden zone.'),
     S_('4', '一共 4 步，金色区域会越来越窄。', '4 steps in all; the golden zone gets narrower each time.')],
   loom: [S_('👀', '先看：四个格子会按顺序亮起来。', 'Watch: the four tiles light up in order.'),
     S_('👆', '再照着同样的顺序点一遍。', 'Then tap them in the same order.'),
@@ -86,20 +86,24 @@ function archeryGame(el, done) {
 export function kitchen(el, done) { intro(el, 'kitchen', T('奶妈的蜂蜜饼', "Nurse's honey cakes"), () => kitchenGame(el, done)); }
 function kitchenGame(el, done) {
   const steps = [T('揉面', 'Knead the dough'), T('浇蜂蜜', 'Pour the honey'), T('撒芝麻', 'Sprinkle sesame'), T('看火候', 'Watch the oven')];
-  const g = frame(el, T('奶妈的蜂蜜饼', "Nurse's honey cakes"), T('指针来回摆动，在金色区域里按"停"。区域会越来越窄。', 'The pointer swings back and forth — tap "Stop" inside the golden zone. It gets narrower.'),
+  const g = frame(el, T('奶妈的蜂蜜饼', "Nurse's honey cakes"), T('指针来回摆动，在金色区域里按"停"（电脑上也可以按空格键）。区域会越来越窄。', 'The pointer swings back and forth — tap "Stop" (or press Space) inside the golden zone. It gets narrower.'),
     `<div class="mg-step"></div><div class="mg-bar"><div class="mg-zone"></div><div class="mg-ptr"></div></div><div class="row"><button class="primary" data-testid="mg-act">${esc(T('停', 'Stop'))}</button><span class="mg-score"></span></div>`);
   const zone = g.querySelector('.mg-zone'), ptr = g.querySelector('.mg-ptr'), stepEl = g.querySelector('.mg-step'), info = g.querySelector('.mg-score');
   let i = 0, total = 0, pos = 0, center = 50, width = 26, speed = 70, t0 = performance.now(), paused = false;
   const setup = () => { center = 20 + Math.random() * 60; width = 26 - i * 5; speed = 70 + i * 22; zone.style.left = `${center - width / 2}%`; zone.style.width = `${width}%`; stepEl.textContent = `${i + 1}/4 · ${steps[i]}`; t0 = performance.now(); };
   setup();
   loop((ts) => { if (paused) return; const k = ((ts - t0) / 1000) * speed; pos = 100 * Math.abs(((k / 100) % 2) - 1); ptr.style.left = `${pos}%`; });
-  g.querySelector('[data-testid=mg-act]').addEventListener('click', () => {
+  const stop = () => {
     if (paused || i >= 4) return;
     const off = Math.abs(pos - center), pts = off <= width / 2 ? Math.round(25 - (off / (width / 2)) * 10) : Math.max(0, Math.round(10 - (off - width / 2) / 3));
     total += pts; info.textContent = `+${pts}`; audio.sfx(pts >= 15 ? 'good' : 'bad');
     paused = true; i++;
     setTimeout(() => { if (i >= 4) { stopMinigame(); done(Math.min(100, total)); } else { paused = false; setup(); } }, 650);
-  });
+  };
+  g.querySelector('[data-testid=mg-act]').addEventListener('click', stop);
+  // 电脑上按空格也可以"停"
+  const key = (e) => { if (!document.body.contains(g)) return document.removeEventListener('keydown', key); if (e.code === 'Space') { e.preventDefault(); stop(); } };
+  document.addEventListener('keydown', key);
 }
 
 // ---------- 织布机：记住回纹格子亮起的顺序，再照着点一遍 ----------

@@ -279,6 +279,8 @@ export function resolveDuel(s, ev, idx, score) {
   return { ok: won, lines: won ? c.success : c.fail, next: c.next };
 }
 // 没有选项的事件（只有台词）也要记为已看过
+// 宠物要等到第一个宠物事件（1 月第 3 周周末）才来到伊俄涅身边
+export const petArrived = (s) => !!s && (s.seenEvents.includes(`pet_${s.pet}_1`) || s.week > 3);
 export function markSeen(s, ev) {
   if (ev.random) { if (!s.randomSeen.includes(ev.id)) s.randomSeen.push(ev.id); }
   else if (!s.seenEvents.includes(ev.id)) s.seenEvents.push(ev.id);

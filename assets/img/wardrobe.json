@@ -91,23 +91,23 @@
   "laurel": {
    "file": "acc_laurel.webp",
    "anchor": "crown",
-   "w": 182,
-   "dx": 0,
-   "dy": 0
+   "w": 243,
+   "dx": -0.5,
+   "dy": 56.5
   },
   "flowers": {
    "file": "acc_flowers.webp",
    "anchor": "crown",
-   "w": 182,
-   "dx": 0,
-   "dy": 2
+   "w": 366,
+   "dx": 41.0,
+   "dy": 71.0
   },
   "diadem": {
    "file": "acc_diadem.webp",
    "anchor": "crown",
-   "w": 168,
-   "dx": 0,
-   "dy": 6
+   "w": 198,
+   "dx": 0.0,
+   "dy": 56.0
   }
  },
  "neck": {

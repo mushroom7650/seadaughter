@@ -39,7 +39,7 @@ export function weekendMenu() {
         ${btn('game', T('玩小游戏', 'Play a mini-game'))}
         ${btn('teach', T('教她一个词', 'Teach her a word'))}
         ${anyItem ? btn('gift', T('送她礼物', 'Give a gift')) : ''}
-        ${btn('pet', T('一起陪宠物玩', 'Play with the pet'))}
+        ${G.petArrived(c.S) ? btn('pet', T('一起陪宠物玩', 'Play with the pet')) : ''}
         ${c.DATA.wardrobe ? btn('style', T('搭配挑战', 'Styling challenge')) : ''}
         ${btn('shop', T('去市集和作坊', 'Market & workshops'), false)}
         ${c.DATA.wardrobe ? btn('dress', T('换装', 'Dress up'), false) : ''}
